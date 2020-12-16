@@ -1,0 +1,4 @@
+*.edid
+/bin/*
+/obj
+*.pdf
