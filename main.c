@@ -121,11 +121,72 @@ int procEDID(const byte *source, byte *out)
     Rev = source[EDID_REVISION];
 
     addr += sprintf(out+addr, "\r\n\r\nDisplay parameters:\r\n");
-    addr += sprintf(out+addr, "Video input definations: %x\r\n",source[VID_ADDR]);//todo 0x14 if digital
+    if ((source[VID_ADDR]>>7)&0x01)
+    {
+        addr += sprintf(out+addr, "Digital video input \r\n");
+        switch ((source[VID_ADDR]>>4)&0x07){
+        case 0:
+            addr += sprintf(out+addr, "Bit depth undefined\r\n");
+            break;
+        case 1:
+            addr += sprintf(out+addr, "6 bits per color \r\n");
+            break;
+        case 2:
+            addr += sprintf(out+addr, "8 bits per color \r\n");
+            break;
+        case 3:
+            addr += sprintf(out+addr, "10 bits per color \r\n");
+            break;
+        case 4:
+            addr += sprintf(out+addr, "12 bits per color \r\n");
+            break;
+        case 5:
+            addr += sprintf(out+addr, "14 bits per color \r\n");
+            break;
+        case 6:
+            addr += sprintf(out+addr, "16 bits per color \r\n");
+            break;
+        case 7:
+            addr += sprintf(out+addr, "Bit depth reserved\r\n");
+            break;
+        }
 
+    }
+    else
+    {
+        addr += sprintf(out+addr, "Analog video input \r\n");
+        switch ((source[VID_ADDR]>>5)&0x03){
+        case 0:
+            addr += sprintf(out+addr, "Video white and sync levels, relative to blank: +0.7/−0.3 V \r\n");
+            break;
+        case 1:
+            addr += sprintf(out+addr, "Video white and sync levels, relative to blank: +0.714/−0.286 V \r\n");
+            break;
+        case 2:
+            addr += sprintf(out+addr, "Video white and sync levels, relative to blank: +1.0/−0.4 V \r\n");
+            break;
+        case 3:
+            addr += sprintf(out+addr, "Video white and sync levels, relative to blank: +0.7/0 V \r\n");
+            break;
+        }
+        if ((source[VID_ADDR]>>4)&0x01)
+            addr += sprintf(out+addr, "Blank-to-black setup (pedestal) expected \r\n");
+        if ((source[VID_ADDR]>>3)&0x01)
+            addr += sprintf(out+addr, "Separate sync supported \r\n");
+        if ((source[VID_ADDR]>>2)&0x01)
+            addr += sprintf(out+addr, "Composite sync (on HSync) supported \r\n");
+        if ((source[VID_ADDR]>>1)&0x01)
+            addr += sprintf(out+addr, "Sync on green supported \r\n");
+        if (source[VID_ADDR]&0x01)
+            addr += sprintf(out+addr, "VSync pulse must be serrated when composite or sync-on-green is used.\r\n");
+    }
     addr += sprintf(out+addr, "max H image size (cm) = %d\r\n", source[H_SIZE_ADDR]);
     addr += sprintf(out+addr, "max V image size (cm) = %d\r\n", source[V_SIZE_ADDR]);
     addr += sprintf(out+addr, "Display gamma = %g\r\n",((100.+source[GAMMA_ADDR])/100.));
+
+
+
+
     addr += sprintf(out+addr, "Features (DPMS, Active off, RGB, timing BLK1) = %x \r\n", source [0x18]);//TODO bit parcing
     addr += sprintf(out+addr, "Red X Rx = 0.%04u\r\n",((source[0x1b] << 2) | (source[0x19] >> 6))*10000/1024);
     addr += sprintf(out+addr, "Red Y Ry = 0.%04u\r\n",((source[0x1c] << 2) | ((source[0x19] >> 4) & 3))*10000/1024);
@@ -158,6 +219,7 @@ int procEDID(const byte *source, byte *out)
         else
             addr += sprintf(out+addr, "Standart timing Identification %d not user \r\n",i);
     }
+
 
     addr += sprintf(out+addr, "\r\nTiming descriptor #1\r\n");
     addr += sprintf(out+addr, "Pixel clock = %d\r\n",(source[PIXCLOCKMSB]<<8 | source[PIXCLOCKLSB])*10000);
