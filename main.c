@@ -203,10 +203,57 @@ int procEDID(const byte *source, byte *out)
     addr += sprintf(out+addr, "max V image size (cm) = %d\r\n", source[V_SIZE_ADDR]);
     addr += sprintf(out+addr, "Display gamma = %g\r\n",((100.+source[GAMMA_ADDR])/100.));
 
+    addr += sprintf(out+addr, "\r\nFeatures \r\n");//(DPMS, Active off, RGB, timing BLK1) = %x \r\n", source [0x18]);//TODO bit parcing
 
+    if ((source[24]>>7)&0x01)
+        addr += sprintf(out+addr, "DPMS standby supported  \r\n");
+    if ((source[24]>>6)&0x01)
+        addr += sprintf(out+addr, "DPMS suspend supported   \r\n");
+    if ((source[24]>>5)&0x01)
+        addr += sprintf(out+addr, "DPMS active-off supported   \r\n");
+    if ((source[24]>>7)&0x01) { //digital or analog
+    switch ((source[24]>>3)&0x03){
+    case 0:
+        addr += sprintf(out+addr, "Display type (digital): RGB 4:4:4\r\n");
+        break;
+    case 1:
+        addr += sprintf(out+addr, "Display type (digital): RGB 4:4:4 + YCrCb 4:4:4\r\n");
+        break;
+    case 2:
+        addr += sprintf(out+addr, "Display type (digital): RGB 4:4:4 + YCrCb 4:2:2\r\n");
+        break;
+    case 3:
+        addr += sprintf(out+addr, "Display type (digital): RGB 4:4:4 + YCrCb 4:4:4 + YCrCb 4:2:2 \r\n");
+        break;
+    }
+    }
+    else
+    {
+    switch ((source[24]>>3)&0x03){
+    case 0:
+        addr += sprintf(out+addr, "Display type (analog): monochrome or grayscale\r\n");
+        break;
+    case 1:
+        addr += sprintf(out+addr, "Display type (analog): RGB color\r\n");
+        break;
+    case 2:
+        addr += sprintf(out+addr, "Display type (analog): non-RGB color\r\n");
+        break;
+    case 3:
+        addr += sprintf(out+addr, "Display type (analog): undefined\r\n");
+        break;
+        }
+    }
 
+    if ((source[24]>>2)&0x01)
+        addr += sprintf(out+addr, "Standard sRGB colour space. Bytes 25–34 must contain sRGB standard values.   \r\n");
+    if ((source[24]>>1)&0x01)
+        addr += sprintf(out+addr, "Preferred timing mode specified in descriptor block 1.\r\n");
+    if (source[24]&0x01)
+        addr += sprintf(out+addr, "Continuous timings with GTF or CVT \r\n");
 
-    addr += sprintf(out+addr, "Features (DPMS, Active off, RGB, timing BLK1) = %x \r\n", source [0x18]);//TODO bit parcing
+//    source [0x18]
+    addr += sprintf(out+addr, "\r\nChromaticity coordinates.\r\n");
     addr += sprintf(out+addr, "Red X Rx = 0.%04u\r\n",((source[0x1b] << 2) | (source[0x19] >> 6))*10000/1024);
     addr += sprintf(out+addr, "Red Y Ry = 0.%04u\r\n",((source[0x1c] << 2) | ((source[0x19] >> 4) & 3))*10000/1024);
     addr += sprintf(out+addr, "Green X Gx = 0.%04u\r\n",((source[0x1d] << 2) | ((source[0x19] >> 2) & 3))*10000/1024);
@@ -217,10 +264,36 @@ int procEDID(const byte *source, byte *out)
     addr += sprintf(out+addr, "White Y Wy = 0.%04u\r\n",((source[0x22] << 2) | (source[0x1a] & 3))*10000/1024);
 
     addr += sprintf(out+addr, "\r\nEstablished timings:\r\n");
-    if (source[ESTABLISHED_TIMING_1] != 0x00)
-        addr += sprintf(out+addr, "Established timing I = %d\r\n",source[ESTABLISHED_TIMING_1]);
+    if (source[ESTABLISHED_TIMING_1] != 0x00){
+        if ((source[ESTABLISHED_TIMING_1]>>7)&0x07){
+            addr += sprintf(out+addr, "720×400 @ 70 Hz (VGA) \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_1]>>6)&0x07){
+            addr += sprintf(out+addr, "720×400 @ 88 Hz (XGA) \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_1]>>5)&0x07){
+            addr += sprintf(out+addr, "640×480 @ 60 Hz (VGA) \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_1]>>4)&0x07){
+            addr += sprintf(out+addr, "640×480 @ 67 Hz (Apple Macintosh II) \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_1]>>3)&0x07){
+            addr += sprintf(out+addr, "640×480 @ 72 Hz \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_1]>>2)&0x07){
+            addr += sprintf(out+addr, "640×480 @ 75 Hz \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_1]>>1)&0x07){
+            addr += sprintf(out+addr, "800×600 @ 56 Hz \r\n");
+        }
+        if (source[ESTABLISHED_TIMING_1]&0x07){
+            addr += sprintf(out+addr, "800×600 @ 60 Hz \r\n");
+        }
     else
         addr += sprintf(out+addr, "Established timing I not used\r\n");
+    }
+
+
     if (source[ESTABLISHED_TIMING_2] != 0x00)
         addr += sprintf(out+addr, "Established timing II = %d\r\n",source[ESTABLISHED_TIMING_2]);
     else
