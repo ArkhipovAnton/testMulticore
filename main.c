@@ -292,14 +292,42 @@ int procEDID(const byte *source, byte *out)
     else
         addr += sprintf(out+addr, "Established timing I not used\r\n");
     }
-
-
-    if (source[ESTABLISHED_TIMING_2] != 0x00)
-        addr += sprintf(out+addr, "Established timing II = %d\r\n",source[ESTABLISHED_TIMING_2]);
+    if (source[ESTABLISHED_TIMING_2] != 0x00){
+        if ((source[ESTABLISHED_TIMING_2]>>7)&0x07){
+            addr += sprintf(out+addr, "800×600 @ 72 Hz \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_2]>>6)&0x07){
+            addr += sprintf(out+addr, "800×600 @ 75 Hz \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_2]>>5)&0x07){
+            addr += sprintf(out+addr, "832×624 @ 75 Hz (Apple Macintosh II) \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_2]>>4)&0x07){
+            addr += sprintf(out+addr, "1024×768 @ 87 Hz, interlaced (1024×768i) \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_2]>>3)&0x07){
+            addr += sprintf(out+addr, "1024×768 @ 60 Hz \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_2]>>2)&0x07){
+            addr += sprintf(out+addr, "1024×768 @ 70 Hz \r\n");
+        }
+        if ((source[ESTABLISHED_TIMING_2]>>1)&0x07){
+            addr += sprintf(out+addr, "1024×768 @ 75 Hz \r\n");
+        }
+        if (source[ESTABLISHED_TIMING_2]&0x07){
+            addr += sprintf(out+addr, "1280×1024 @ 75 Hz \r\n");
+        }
+    }
     else
         addr += sprintf(out+addr, "Established timing II not used\r\n");
-    if (source[MANUFACTURERS_TIMINGS] != 0x00)
-        addr += sprintf(out+addr, "Manufactures timings = %d\r\n",source[MANUFACTURERS_TIMINGS]);
+    if (source[MANUFACTURERS_TIMINGS] != 0x00){
+        if ((source[MANUFACTURERS_TIMINGS]>>7)&0x07){
+            addr += sprintf(out+addr, "1152x870 @ 75 Hz (Apple Macintosh II) \r\n");
+        }
+        if (source[MANUFACTURERS_TIMINGS]&0x7F){
+            addr += sprintf(out+addr, "Manufactures timings = %d\r\n",source[MANUFACTURERS_TIMINGS]);
+        }
+        }
     else
         addr += sprintf(out+addr, "Manufactures timings not used\r\n");
 
