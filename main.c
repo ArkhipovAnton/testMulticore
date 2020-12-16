@@ -150,7 +150,26 @@ int procEDID(const byte *source, byte *out)
             addr += sprintf(out+addr, "Bit depth reserved\r\n");
             break;
         }
-
+        switch (source[VID_ADDR]&0x07){
+        case 0:
+            addr += sprintf(out+addr, "Video interface: undefined\r\n");
+            break;
+        case 2:
+            addr += sprintf(out+addr, "Video interface: HDMIa\r\n");
+            break;
+        case 3:
+            addr += sprintf(out+addr, "Video interface: HDMIb\r\n");
+            break;
+        case 4:
+            addr += sprintf(out+addr, "Video interface: MDDI\r\n");
+            break;
+        case 5:
+            addr += sprintf(out+addr, "Video interface: DisplayPort\r\n");
+            break;
+        default:
+            addr += sprintf(out+addr, "Video interface: undefined in standart\r\n");
+            break;
+        }
     }
     else
     {
